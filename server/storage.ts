@@ -120,8 +120,11 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentId++;
     const user: User = {
-      ...insertUser,
       id,
+      username: insertUser.username,
+      password: insertUser.password,
+      email: insertUser.email || null,
+      role: insertUser.role || "employee",
       createdAt: new Date()
     };
     this.users.set(id, user);
@@ -157,8 +160,10 @@ export class MemStorage implements IStorage {
   async createTask(insertTask: InsertTask): Promise<Task> {
     const id = this.currentId++;
     const task: Task = {
-      ...insertTask,
       id,
+      title: insertTask.title,
+      description: insertTask.description || null,
+      imageUrl: insertTask.imageUrl || null,
       completed: false,
       completedBy: null,
       completedAt: null,
@@ -232,8 +237,10 @@ export class MemStorage implements IStorage {
   async createImportantMessage(insertMessage: InsertImportantMessage): Promise<ImportantMessage> {
     const id = this.currentId++;
     const message: ImportantMessage = {
-      ...insertMessage,
       id,
+      title: insertMessage.title,
+      content: insertMessage.content,
+      active: insertMessage.active ?? true,
       createdAt: new Date()
     };
     this.importantMessages.set(id, message);
