@@ -349,7 +349,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(id: number): Promise<boolean> {
     const result = await db.delete(users).where(eq(users.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async getAllUsers(): Promise<User[]> {
@@ -384,7 +384,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTask(id: number): Promise<boolean> {
     const result = await db.delete(tasks).where(eq(tasks.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async completeTask(id: number, userId: number): Promise<Task | undefined> {
@@ -448,7 +448,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteImportantMessage(id: number): Promise<boolean> {
     const result = await db.delete(importantMessages).where(eq(importantMessages.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async acknowledgeMessage(messageId: number, userId: number): Promise<MessageAcknowledgement> {
