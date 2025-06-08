@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -84,6 +85,56 @@ export const insertEmployeeNoteSchema = createInsertSchema(employeeNotes).omit({
   resolvedAt: true,
   createdAt: true,
 });
+
+// Types
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  tasks: many(tasks),
+  taskNotes: many(taskNotes),
+  messageAcknowledgements: many(messageAcknowledgements),
+  employeeNotes: many(employeeNotes),
+}));
+
+export const tasksRelations = relations(tasks, ({ one, many }) => ({
+  completedByUser: one(users, {
+    fields: [tasks.completedBy],
+    references: [users.id],
+  }),
+  taskNotes: many(taskNotes),
+}));
+
+export const taskNotesRelations = relations(taskNotes, ({ one }) => ({
+  task: one(tasks, {
+    fields: [taskNotes.taskId],
+    references: [tasks.id],
+  }),
+  user: one(users, {
+    fields: [taskNotes.userId],
+    references: [users.id],
+  }),
+}));
+
+export const importantMessagesRelations = relations(importantMessages, ({ many }) => ({
+  messageAcknowledgements: many(messageAcknowledgements),
+}));
+
+export const messageAcknowledgementsRelations = relations(messageAcknowledgements, ({ one }) => ({
+  message: one(importantMessages, {
+    fields: [messageAcknowledgements.messageId],
+    references: [importantMessages.id],
+  }),
+  user: one(users, {
+    fields: [messageAcknowledgements.userId],
+    references: [users.id],
+  }),
+}));
+
+export const employeeNotesRelations = relations(employeeNotes, ({ one }) => ({
+  user: one(users, {
+    fields: [employeeNotes.userId],
+    references: [users.id],
+  }),
+}));
 
 // Types
 export type User = typeof users.$inferSelect;

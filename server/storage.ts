@@ -5,6 +5,8 @@ import {
   type InsertImportantMessage, type MessageAcknowledgement,
   type EmployeeNote, type InsertEmployeeNote
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -317,4 +319,181 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async updateUser(id: number, updateData: Partial<InsertUser>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    const result = await db.delete(users).where(eq(users.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async getAllTasks(): Promise<Task[]> {
+    return await db.select().from(tasks);
+  }
+
+  async getTask(id: number): Promise<Task | undefined> {
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
+    return task || undefined;
+  }
+
+  async createTask(insertTask: InsertTask): Promise<Task> {
+    const [task] = await db
+      .insert(tasks)
+      .values(insertTask)
+      .returning();
+    return task;
+  }
+
+  async updateTask(id: number, updateData: Partial<InsertTask>): Promise<Task | undefined> {
+    const [task] = await db
+      .update(tasks)
+      .set(updateData)
+      .where(eq(tasks.id, id))
+      .returning();
+    return task || undefined;
+  }
+
+  async deleteTask(id: number): Promise<boolean> {
+    const result = await db.delete(tasks).where(eq(tasks.id, id));
+    return result.rowCount > 0;
+  }
+
+  async completeTask(id: number, userId: number): Promise<Task | undefined> {
+    const [task] = await db
+      .update(tasks)
+      .set({
+        completed: true,
+        completedBy: userId,
+        completedAt: new Date()
+      })
+      .where(eq(tasks.id, id))
+      .returning();
+    return task || undefined;
+  }
+
+  async getTaskNotes(taskId: number): Promise<TaskNote[]> {
+    return await db.select().from(taskNotes).where(eq(taskNotes.taskId, taskId));
+  }
+
+  async createTaskNote(insertNote: InsertTaskNote): Promise<TaskNote> {
+    const [note] = await db
+      .insert(taskNotes)
+      .values(insertNote)
+      .returning();
+    return note;
+  }
+
+  async updateTaskNote(id: number, notes: string): Promise<TaskNote | undefined> {
+    const [note] = await db
+      .update(taskNotes)
+      .set({ notes })
+      .where(eq(taskNotes.id, id))
+      .returning();
+    return note || undefined;
+  }
+
+  async getAllImportantMessages(): Promise<ImportantMessage[]> {
+    return await db.select().from(importantMessages);
+  }
+
+  async getActiveImportantMessages(): Promise<ImportantMessage[]> {
+    return await db.select().from(importantMessages).where(eq(importantMessages.active, true));
+  }
+
+  async createImportantMessage(insertMessage: InsertImportantMessage): Promise<ImportantMessage> {
+    const [message] = await db
+      .insert(importantMessages)
+      .values(insertMessage)
+      .returning();
+    return message;
+  }
+
+  async updateImportantMessage(id: number, updateData: Partial<InsertImportantMessage>): Promise<ImportantMessage | undefined> {
+    const [message] = await db
+      .update(importantMessages)
+      .set(updateData)
+      .where(eq(importantMessages.id, id))
+      .returning();
+    return message || undefined;
+  }
+
+  async deleteImportantMessage(id: number): Promise<boolean> {
+    const result = await db.delete(importantMessages).where(eq(importantMessages.id, id));
+    return result.rowCount > 0;
+  }
+
+  async acknowledgeMessage(messageId: number, userId: number): Promise<MessageAcknowledgement> {
+    const [acknowledgement] = await db
+      .insert(messageAcknowledgements)
+      .values({ messageId, userId })
+      .returning();
+    return acknowledgement;
+  }
+
+  async getMessageAcknowledgements(messageId: number): Promise<MessageAcknowledgement[]> {
+    return await db.select().from(messageAcknowledgements).where(eq(messageAcknowledgements.messageId, messageId));
+  }
+
+  async getUserAcknowledgements(userId: number): Promise<MessageAcknowledgement[]> {
+    return await db.select().from(messageAcknowledgements).where(eq(messageAcknowledgements.userId, userId));
+  }
+
+  async getAllEmployeeNotes(): Promise<EmployeeNote[]> {
+    return await db.select().from(employeeNotes);
+  }
+
+  async getUnresolvedEmployeeNotes(): Promise<EmployeeNote[]> {
+    return await db.select().from(employeeNotes).where(eq(employeeNotes.resolved, false));
+  }
+
+  async createEmployeeNote(insertNote: InsertEmployeeNote): Promise<EmployeeNote> {
+    const [note] = await db
+      .insert(employeeNotes)
+      .values(insertNote)
+      .returning();
+    return note;
+  }
+
+  async resolveEmployeeNote(id: number): Promise<EmployeeNote | undefined> {
+    const [note] = await db
+      .update(employeeNotes)
+      .set({
+        resolved: true,
+        resolvedAt: new Date()
+      })
+      .where(eq(employeeNotes.id, id))
+      .returning();
+    return note || undefined;
+  }
+}
+
+export const storage = new DatabaseStorage();
