@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
+import Login from "@/pages/login";
 import EmployeeDashboard from "@/pages/employee-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import NotFound from "@/pages/not-found";
@@ -21,6 +22,7 @@ function AppContent() {
 
   return (
     <Switch>
+      <Route path="/login" component={Login} />
       <Route path="/" component={EmployeeDashboard} />
       <Route path="/admin" component={AdminDashboard} />
       <Route component={NotFound} />

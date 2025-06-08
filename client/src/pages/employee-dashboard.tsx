@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 import TaskItem from "@/components/task-item";
 import ImportantMessagePopup from "@/components/important-message-popup";
 import AdminLogin from "@/components/admin-login";
@@ -15,10 +16,18 @@ export default function EmployeeDashboard() {
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [showLogin, setShowLogin] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<ImportantMessage | null>(null);
   const [employeeNote, setEmployeeNote] = useState("");
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!user) {
+      setLocation("/login");
+    }
+  }, [user, setLocation]);
 
   const { data: tasks = [], isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks"],

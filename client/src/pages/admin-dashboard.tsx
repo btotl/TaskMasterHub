@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import AdminLogin from "@/components/admin-login";
 import TaskManagement from "@/components/task-management";
 import MessageManagement from "@/components/message-management";
@@ -13,8 +14,16 @@ import type { EmployeeNote } from "@shared/schema";
 
 export default function AdminDashboard() {
   const { user, isAdmin, logout } = useAuth();
+  const [, setLocation] = useLocation();
   const [showLogin, setShowLogin] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
+
+  // Redirect to login if not authenticated or not admin
+  useEffect(() => {
+    if (!user || !isAdmin) {
+      setLocation("/login");
+    }
+  }, [user, isAdmin, setLocation]);
 
   const { data: unresolvedNotes = [] } = useQuery<EmployeeNote[]>({
     queryKey: ["/api/employee-notes/unresolved"],
